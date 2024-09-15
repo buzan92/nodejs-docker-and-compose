@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  backend:
+    image: node:16-alpine
+    container_name: diplom-backend
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    networks:
+      - internal-network
+      - internet
+    ports:
+      - "4000:4000"
+    depends_on:
+      - database
+    env_file:
+      - backend/.env
+    restart: unless-stopped
+
+  database:
+    image: postgres:13
+    container_name: diplom-postgres
+    volumes:
+      - "./database:/data/postgres"
+    networks:
+      - internal-network
+    env_file:
+      - backend/.env
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:latest
+    container_name: diplom-frontend
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    networks:
+      - internet
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+networks:
+  internal-network:
+    driver: bridge
+    internal: true
+  internet:
+    driver: bridge
+
+volumes:
+  database:
